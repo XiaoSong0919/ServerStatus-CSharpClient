@@ -8,6 +8,15 @@
 
 ## 使用说明
 
+运行前需安装`.Net 7 Runtime`，这里以Ubuntu 20.04安装作为示范
+
+```
+wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+rm packages-microsoft-prod.deb
+sudo apt-get update &&  sudo apt-get install -y aspnetcore-runtime-7.0
+```
+
 运行时需传入客户端对应参数。
 
 假设你的服务端地址是`yourip`，客户端用户名`username`，密码`password`
