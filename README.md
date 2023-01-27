@@ -6,15 +6,43 @@
 
 基于Cokemine大大的[Golang版](https://github.com/cokemine/ServerStatus-goclient)重构而成
 
-## 使用说明
+## Build
+
+编译前，您需安装`.Net 7 SDK`，这里以Ubuntu 20.04安装作为示范
+
+```
+
+wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+
+sudo dpkg -i packages-microsoft-prod.deb
+
+rm packages-microsoft-prod.deb
+
+sudo apt-get update &&  sudo apt-get install -y dotnet-sdk-7.0
+
+```
+
+开始编译
+
+```
+
+
+```
+
+## Run
 
 运行前需安装`.Net 7 Runtime`，这里以Ubuntu 20.04安装作为示范
 
 ```
+
 wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+
 sudo dpkg -i packages-microsoft-prod.deb
+
 rm packages-microsoft-prod.deb
+
 sudo apt-get update &&  sudo apt-get install -y dotnet-runtime-7.0
+
 ```
 
 运行时需传入客户端对应参数。
