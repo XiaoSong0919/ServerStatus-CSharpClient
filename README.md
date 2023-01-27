@@ -26,8 +26,19 @@ sudo apt-get update &&  sudo apt-get install -y dotnet-sdk-7.0
 
 ```
 
+git clone https://github.com/XiaoSong0919/ServerStatus-CSharpClient.git
+
+cd ServerStatus-CSharpClient
+
+dotnet build
 
 ```
+
+可执行文件输出路径在`bin/Debug/net7.0/`
+
+等待片刻即可完成编译
+
+### Notice：您可以使用低于7.0的.Net SDK进行编译，但这会导致可执行文件在Linux上抛出异常
 
 ## Run
 
