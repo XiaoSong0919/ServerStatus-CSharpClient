@@ -69,12 +69,6 @@ namespace ServerStatus_CSharpClient
                 string arg = null;
                 foreach (string _arg in args)
                 {
-                    if(_arg.Contains("h"))
-                    {
-                        Console.WriteLine($"ServerStatus-CSharpClient v{Version}\n");
-                        PrintHelper();
-                        Environment.Exit(0);
-                    }
                     if (_arg.Contains("dsn"))
                     {
                         arg = _arg.Replace("-", "");
@@ -98,6 +92,12 @@ namespace ServerStatus_CSharpClient
                     else
                     {
                         Console.WriteLine($"[ERROR]Invalid argument \"{_arg}\"");
+                        PrintHelper();
+                        Environment.Exit(0);
+                    }
+                    if (_arg.Contains("h"))
+                    {
+                        Console.WriteLine($"ServerStatus-CSharpClient v{Version}\n");
                         PrintHelper();
                         Environment.Exit(0);
                     }
