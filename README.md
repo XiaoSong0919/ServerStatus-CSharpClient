@@ -1,8 +1,42 @@
 # ServerStatus-CSharpClient
 
+框架：.Net 7.0
+
 使用C#写的ServerStatus客户端
 
 基于Cokemine大大的[Golang版](https://github.com/cokemine/ServerStatus-goclient)重构而成
 
-框架：.Net 7.0
+## 使用说明
+
+运行时需传入客户端对应参数。
+
+假设你的服务端地址是`yourip`，客户端用户名`username`，密码`password`
+
+端口号`35601`
+
+你可以这样运行
+
+```bash
+chmod +x status-CSharpClient
+./status-CSharpClient -dsn "username:password@yourip:35601"
+```
+
+即用户名密码以`:`分割，登录信息和服务器信息以`@`分割，地址与端口号以`:`分割。
+
+默认端口号是35601，所以你可以忽略端口号不写，即直接写`username:password@yourip`
+
+## Usage
+
+```
+  -dsn string
+        Input DSN, format: username:password@host:port
+  -h string
+        Input the host of the server
+  -interval float
+        Input the INTERVAL (default 2.0)
+  
+```
+
+
+
 
