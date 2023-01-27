@@ -8,16 +8,27 @@ using System.Text;
 using System.Threading;
 using CZGL.SystemInfo;
 
-
 namespace ServerStatus_CSharpClient
 {
-    internal class main
+    internal class ServerStatusClient
     {
         static TcpClient Client = new();
         static string ServerIP,Username,Password;
         static int Port;
         static double Interval = 2;
         static Platform OSPlatform;
+        static double LastCPURate;
+        static Queue<double> Load1 = new(60);
+        static Queue<double> Load5 = new(300);
+        static Queue<double> Load15 = new(900);
+        static Load SystemLoad = new();
+        static string Version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+        public struct Load
+        {
+            public double Load1;
+            public double Load5;
+            public double Load15;
+        }
         enum Platform
         {
             Windows,
@@ -40,6 +51,13 @@ namespace ServerStatus_CSharpClient
             public long NetTx;//出流量
             public long NetRx;//入流量
         }
+        public static void PrintHelper()
+        {
+            Console.WriteLine("Usage: ServerStatus-CSharpClient -[Argument] [Type]\n");
+            Console.WriteLine("Argument:\n");
+            Console.WriteLine("          -dsn \"[Username:Password@Host:Port]\"      Enter your configuration in DSN format");
+            Console.WriteLine("          -interval [float]                           Refresh interval (second)");
+        }
         static void Main(string[] args)
         {
             if (RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
@@ -51,6 +69,12 @@ namespace ServerStatus_CSharpClient
                 string arg = null;
                 foreach (string _arg in args)
                 {
+                    if(_arg.Contains("h"))
+                    {
+                        Console.WriteLine($"ServerStatus-CSharpClient v{Version}\n");
+                        PrintHelper();
+                        Environment.Exit(0);
+                    }
                     if (_arg.Contains("dsn"))
                     {
                         arg = _arg.Replace("-", "");
@@ -74,6 +98,7 @@ namespace ServerStatus_CSharpClient
                     else
                     {
                         Console.WriteLine($"[ERROR]Invalid argument \"{_arg}\"");
+                        PrintHelper();
                         Environment.Exit(0);
                     }
 
@@ -82,6 +107,8 @@ namespace ServerStatus_CSharpClient
             else
             {
                 Console.WriteLine($"[ERROR]None argument");
+                Console.WriteLine($"ServerStatus-CSharpClient v{Version}\n");
+                PrintHelper();
                 Environment.Exit(0);
             }
             Connect();
@@ -140,12 +167,15 @@ namespace ServerStatus_CSharpClient
         {
             ServerStatus status = new();
             //通用
-            status.Uptime = (long)TimeSpan.FromMilliseconds(Environment.TickCount).TotalSeconds;
+            //Uptime
+            status.Uptime = Environment.TickCount /1000;
             //CPU
             CPUTime CPURunTime = CPUHelper.GetCPUTime();
             Thread.Sleep((int)Interval * 50);
             var _CPURunTime = CPUHelper.GetCPUTime();
-            status.CPU = (double)decimal.Round((decimal)(CPUHelper.CalculateCPULoad(CPURunTime, _CPURunTime) * 100),0);            
+            status.CPU = (double)decimal.Round((decimal)(CPUHelper.CalculateCPULoad(CPURunTime, _CPURunTime) * 100),0);
+            //Load
+            status.Load = GetLoad(CPUHelper.CalculateCPULoad(CPURunTime, _CPURunTime));
             //Mem
             var Memory = MemoryHelper.GetMemoryValue();
             status.MemTotal = (long)Memory.TotalPhysicalMemory / 1000;
@@ -238,6 +268,49 @@ namespace ServerStatus_CSharpClient
                 Send(Text,Socket);
                 Thread.Sleep((int)(Interval * 1000));
             }
+        }
+        public static double GetLoad(double CPURate)
+        {
+            var _CPURate = CPURate;
+            if (CPURate >= 0.8)
+                _CPURate += (SystemPlatformInfo.ProcessorCount * CPURate) * (Interval / 60) + LastCPURate;
+            LastCPURate = CPURate;
+            if (Load1.Count == 60)
+            {
+                Load1.Dequeue();
+                Load1.Enqueue(_CPURate);
+            }
+            else
+                Load1.Enqueue(_CPURate);
+            if (Load5.Count == 300)
+            {
+                Load5.Dequeue();
+                Load5.Enqueue(_CPURate);
+            }
+            else
+                Load5.Enqueue(_CPURate);
+            if (Load15.Count == 900)
+            {
+                Load15.Dequeue();
+                Load15.Enqueue(_CPURate);
+            }
+            else
+                Load15.Enqueue(_CPURate);
+            double _Load1 = 0,_Load5 = 0,_Load15 = 0;
+            foreach(var Load in Load1)
+                _Load1 += Load;
+            foreach(var Load in Load5)
+                _Load5 += Load;
+            foreach(var Load in Load15)
+                _Load15 += Load;
+            _Load1 = (_Load1 / Load1.Count) * SystemPlatformInfo.ProcessorCount;
+            _Load5 = (_Load5 / Load5.Count) * SystemPlatformInfo.ProcessorCount;
+            _Load15 = (_Load15 / Load15.Count) * SystemPlatformInfo.ProcessorCount;
+
+            SystemLoad.Load1 = _Load1;
+            SystemLoad.Load5 = _Load5;
+            SystemLoad.Load15 = _Load15;
+            return SystemLoad.Load1;
         }
     }
 }
