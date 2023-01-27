@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ServerStatus-CSharpClient": {
+      "commandName": "Project",
+      "commandLineArgs": "-dsn \"Physics:doub.io@192.168.31.8:35601\" -interval 1.0"
+    }
+  }
+}
