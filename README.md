@@ -61,12 +61,31 @@ chmod +x status-CSharpClient
 
 ## Usage
 
+### 如何指定NIC
+
+如需上报特定NIC的信息，您可以使用`-i [NIC id]`参数
+
+使用该参数前，需使用`-i list`获取该NIC的ID
+
+```
+>-i list
+---------------------------------------------------------
+NICs                                     NIC id
+本地连接* 1                              {1743FAED-94B7-4A91-XXXX-C4F86968B3DE}
+```
+由此可以获得该NIC的id`1743FAED-94B7-4A91-XXXX-C4F86968B3DE`，接下来只需在运行时加入`-i 1743FAED-94B7-4A91-XXXX-C4F86968B3DE`参数即可上报此网卡的信息
+
+如果没有使用`-i`参数，那么ServerStatus-CSharpClient将会对所有NIC进行求和并上报
+
 ```
   -dsn string
         Input DSN, format: username:password@host:port
         eg: use IPv4   -dsn "Test:doub.io@127.0.0.1:35601" or -dsn "Test:doub.io@127.0.0.1"
             use IPv6   -dsn "Test:doub.io@[::1]:35601" or -dsn "Test:doub.io@[::1]"
             
+  -i [NIC id]                                 Report specified Network Interface Card(NIC)");
+        eg: Print Network Interface Card List  -i list\n");
+        
   -interval float
         Input the INTERVAL (default 2.0)
   -h | --help
