@@ -2,7 +2,7 @@
   "profiles": {
     "ServerStatus-CSharpClient": {
       "commandName": "Project",
-      "commandLineArgs": "-dsn \"Test:doub.io@192.168.31.8:35601\" -interval 1.0"
+      "commandLineArgs": "-dsn \"Test:doub.io@192.168.31.8\" "
     }
   }
 }

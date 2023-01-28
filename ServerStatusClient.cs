@@ -22,6 +22,7 @@ namespace ServerStatus_CSharpClient
         static Queue<double> Load5 = new(300);
         static Queue<double> Load15 = new(900);
         static Load SystemLoad = new();
+        static string NIC_id = null;
         static string Version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
         public struct Load
         {
@@ -56,7 +57,12 @@ namespace ServerStatus_CSharpClient
             Console.WriteLine("Usage: ServerStatus-CSharpClient -[Argument] [Type]\n");
             Console.WriteLine("Argument:\n");
             Console.WriteLine("          -dsn \"[Username:Password@Host:Port]\"      Enter your configuration in DSN format");
-            Console.WriteLine("          -interval [float]                           Refresh interval (second)");
+            Console.WriteLine("                eg: use IPv4   -dsn \"Test:doub.io@127.0.0.1:35601\" or -dsn \"Test:doub.io@127.0.0.1\"");
+            Console.WriteLine("                    use IPv6   -dsn \"Test:doub.io@[::1]:35601\" or -dsn \"Test:doub.io@[::1]\"\n");
+            Console.WriteLine("          -i [NIC id]                                 Report specified Network Interface Card(NIC)");
+            Console.WriteLine("                eg: Print Network Interface Card List  -i list\n");
+            Console.WriteLine("          -t [float]                                  Refresh interval (second)");
+            Console.WriteLine("          -h | --help                                 Print this help information");
         }
         static void Main(string[] args)
         {
@@ -69,39 +75,86 @@ namespace ServerStatus_CSharpClient
                 string arg = null;
                 foreach (string _arg in args)
                 {
-                    if (_arg.Contains("dsn"))
-                    {
-                        arg = _arg.Replace("-", "");
-                        continue;
-                    }
-                    else if (_arg.Contains("interval"))
-                    {
-                        arg = _arg.Replace("-", "");
-                        continue;
-                    }
-                    else if (arg == "dsn")
-                    {
-                        string[] InputArg = _arg.Replace("\"","").Replace("\"", "").Split(':', '@');
-                        Username = InputArg[0];
-                        Password = InputArg[1];
-                        ServerIP = InputArg[2];
-                        Port = int.Parse(InputArg[3]);
-                    }
-                    else if (arg == "interval")
-                        Interval = double.Parse(_arg);
-                    else
-                    {
-                        Console.WriteLine($"[ERROR]Invalid argument \"{_arg}\"");
-                        PrintHelper();
-                        Environment.Exit(0);
-                    }
-                    if (_arg.Contains("h"))
+                    if ((_arg.Contains("-h") && _arg.Length == 2) || _arg.Contains("help"))
                     {
                         Console.WriteLine($"ServerStatus-CSharpClient v{Version}\n");
                         PrintHelper();
                         Environment.Exit(0);
                     }
-
+                    else if (args.Length == 1)
+                    {
+                        Console.WriteLine($"[ERROR]Invalid type");
+                        PrintHelper();
+                        Environment.Exit(0);
+                    }
+                    else if (_arg.Contains("dsn"))
+                    {
+                        arg = "dsn";
+                        continue;
+                    }
+                    else if (_arg.Contains("t") && _arg.Length == 2)
+                    {
+                        arg = "interval";
+                        continue;
+                    }
+                    else if (_arg.Contains("i") && _arg.Length == 2)
+                    {
+                        
+                        arg = "interface";
+                        continue;
+                    }
+                    else if (arg == "dsn")
+                    {
+                        string[] InputArg = _arg.Split(new char[] { ':', '@' }, 3);
+                        Username = InputArg[0];
+                        Password = InputArg[1];
+                        if (InputArg[2].Contains("[") && InputArg[2].Contains("]"))//IPv6
+                        {
+                            string[] _InputArg = InputArg[2].Split(new char[] {'[',']'});
+                            ServerIP = _InputArg[1];
+                            if (_InputArg[2] == "")
+                                Port = 35601;
+                            else
+                                Port = int.Parse(_InputArg[1]);
+                        }
+                        else//IPv4
+                        {
+                            if (InputArg[2].Contains(":"))
+                            {
+                                string[] _InputArg = InputArg[2].Split(":");
+                                ServerIP = _InputArg[0];
+                                Port = int.Parse(_InputArg[1]);
+                            }
+                            else
+                            {
+                                ServerIP = InputArg[2];
+                                Port = 35601;
+                            }                            
+                        }
+                        
+                    }
+                    else if (arg == "interval")
+                        Interval = double.Parse(_arg);
+                    else if( arg == "interface")
+                    {
+                        if (_arg.Contains("list"))
+                        {
+                            var NICs = NetworkInterface.GetAllNetworkInterfaces();
+                            Console.WriteLine("---------------------------------------------------------");
+                            Console.WriteLine("NICs                                     NIC id");
+                            foreach (var NIC in NICs)
+                                Console.WriteLine($"{NIC.Name}                                     {NIC.Id}");
+                            Environment.Exit(0);
+                        }
+                        else
+                            NIC_id = _arg;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[ERROR]Invalid argument \"{_arg}\"");
+                        PrintHelper();
+                        Environment.Exit(0);
+                    }                 
                 }
             }
             else
@@ -188,6 +241,8 @@ namespace ServerStatus_CSharpClient
             long NICIn = 0,NICOut = 0;
             foreach(var NIC in NICs)
             {
+                if ( NIC_id != null &&!NIC.Id.Contains(NIC_id) )
+                    continue;
                 NICOut += NIC.GetIPStatistics().BytesSent;
                 NICIn += NIC.GetIPStatistics().BytesReceived;
             }
@@ -200,6 +255,8 @@ namespace ServerStatus_CSharpClient
                 long TotalOutBytes = 0;
                 foreach (var NIC in NICs)
                 {
+                    if (NIC_id != null && !NIC.Id.Contains(NIC_id))
+                        continue;
                     //if (NIC.OperationalStatus != OperationalStatus.Up || NIC.NetworkInterfaceType == NetworkInterfaceType.Loopback || NIC.GetIPStatistics().BytesSent == 0 || NIC.GetIPStatistics().BytesReceived == 0)
                     //    continue;
                     TotalOutBytes += NIC.GetIPStatistics().BytesSent;
