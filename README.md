@@ -64,8 +64,12 @@ chmod +x status-CSharpClient
 ```
   -dsn string
         Input DSN, format: username:password@host:port
+        eg: use IPv4   -dsn "Test:doub.io@127.0.0.1:35601" or -dsn "Test:doub.io@127.0.0.1"
+            use IPv6   -dsn "Test:doub.io@[::1]:35601" or -dsn "Test:doub.io@[::1]"
+            
   -interval float
         Input the INTERVAL (default 2.0)
+  -h | --help
 ```
 
 
